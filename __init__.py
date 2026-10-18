@@ -42,13 +42,14 @@ logger = logging.getLogger(__name__)
 
 DUMMY_FLAG_CONTENT = '[Container flag - auto-generated per instance]'
 
-#: Challenge fields the admin UI is allowed to set. Anything else in the
-#: request body is ignored, so a crafted POST cannot reach arbitrary columns.
+#: Challenge fields the admin UI is allowed to set, by model attribute (after
+#: FIELD_ALIASES). Anything else in the request body is ignored, so a crafted
+#: POST cannot reach arbitrary columns.
 EDITABLE_FIELDS = {
     'name', 'category', 'description', 'attribution', 'state', 'max_attempts',
     'requirements', 'next_id', 'value',
     'image', 'internal_port', 'internal_ports', 'command',
-    'connection_type', 'connection_info',
+    'container_connection_type', 'container_connection_info',
     'flag_mode', 'flag_prefix', 'flag_suffix', 'random_flag_length',
     'container_initial', 'container_minimum', 'container_decay', 'decay_function',
     'pids_limit',

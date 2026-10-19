@@ -2,7 +2,10 @@ CTFd._internal.challenge.data = undefined;
 CTFd._internal.challenge.renderer = null;
 CTFd._internal.challenge.preRender = function () { };
 CTFd._internal.challenge.render = null;
-CTFd._internal.challenge.postRender = function () { };
+CTFd._internal.challenge.postRender = function () {
+    var data = CTFd._internal.challenge.data;
+    if (data && data.id) initContainerPanel(data.id);
+};
 
 CTFd._internal.challenge.submit = function (preview) {
     var challenge_id = parseInt(CTFd.lib.$("#challenge-id").val());
@@ -26,6 +29,60 @@ CTFd._internal.challenge.submit = function (preview) {
 
 function el(id) {
     return document.getElementById(id);
+}
+
+// English texts; view.html passes the player's language (pt, ja, ko) in the
+// panel's data-texts, and anything missing there falls back to these.
+var CONTAINER_TEXTS_EN = {
+    loading: "Loading...",
+    fetch: "Fetch Instance",
+    extend: "Extend +{m}m",
+    terminate: "Terminate",
+    confirm: "Click again to confirm",
+    expired: "Expired",
+    expires_s: "Expires in {n} seconds",
+    expires_m: "Expires in {n} minutes",
+    unknown_time: "unknown",
+    starting: "Container is still starting up - this page refreshes automatically.",
+    unknown: "Unknown error",
+    none: "No active instance. Click 'Fetch Instance' to start.",
+    unknown_status: "Unknown status: {s}",
+    err_info: "Error fetching container info.",
+    err_request: "Error requesting container.",
+    err_renew: "Error renewing container.",
+    terminated: "Instance terminated.",
+    err_stop: "Error stopping container.",
+    max: "You have reached the maximum number of concurrent containers ({n})",
+    not_running: "No running container found",
+    not_available: "Challenge is not available",
+    stop_failed: "Failed to stop container"
+};
+
+function tr(key, vars) {
+    var texts = {};
+    var panel = document.querySelector(".deployment-actions");
+    try {
+        texts = JSON.parse((panel && panel.dataset.texts) || "{}");
+    } catch (e) {
+        texts = {};
+    }
+    var text = texts[key] || CONTAINER_TEXTS_EN[key] || key;
+    Object.keys(vars || {}).forEach(function (name) {
+        text = text.split("{" + name + "}").join(vars[name]);
+    });
+    return text;
+}
+
+// Server messages the player is likely to see, in the player's language
+function trServerError(message) {
+    var max = /maximum number of concurrent containers \((\d+)\)/.exec(message || "");
+    if (max) return tr("max", { n: max[1] });
+    var known = {
+        "No running container found": "not_running",
+        "Challenge is not available": "not_available",
+        "Failed to stop container": "stop_failed"
+    };
+    return known[message] ? tr(known[message]) : message;
 }
 
 function setAlert(message, isError) {
@@ -58,7 +115,7 @@ function beginTerminateConfirm(button) {
     button.classList.add("terminate-confirming");
     // Plain text: a polling refresh must not be able to overwrite the button
     // while the player is deciding.
-    button.textContent = "Click again to confirm";
+    button.textContent = tr("confirm");
     button.dataset.resetTimer = String(setTimeout(function () {
         endTerminateConfirm(button);
     }, 5000));
@@ -80,7 +137,7 @@ function setRenewLabel(minutes) {
     if (!button || !minutes) return;
     var label = button.querySelector("small");
     if (label) {
-        label.textContent = " Extend +" + minutes + "m ";
+        label.textContent = " " + tr("extend", { m: minutes }) + " ";
     }
 }
 
@@ -92,7 +149,7 @@ function resetAlert() {
         spinner.setAttribute("role", "status");
         var hidden = document.createElement("span");
         hidden.className = "visually-hidden";
-        hidden.textContent = "Loading...";
+        hidden.textContent = tr("loading");
         spinner.appendChild(hidden);
         alert.appendChild(spinner);
     }
@@ -132,14 +189,14 @@ function hideChallengeUpdate() {
 }
 
 function formatExpiry(timestampMs) {
-    if (!timestampMs) return "unknown";
+    if (!timestampMs) return tr("unknown_time");
     var secondsLeft = Math.ceil((timestampMs - Date.now()) / 1000);
     if (secondsLeft < 0) {
-        return "Expired";
+        return tr("expired");
     } else if (secondsLeft < 60) {
-        return "Expires in " + secondsLeft + " seconds";
+        return tr("expires_s", { n: secondsLeft });
     }
-    return "Expires in " + Math.ceil(secondsLeft / 60) + " minutes";
+    return tr("expires_m", { n: Math.ceil(secondsLeft / 60) });
 }
 
 function appendLink(parent, url) {
@@ -236,13 +293,13 @@ function applyInstancePayload(data) {
     if (data.status === "provisioning" || data.instance_status === "provisioning") {
         var note = document.createElement("small");
         note.className = "text-muted d-block";
-        note.textContent = "Container is still starting up - this page refreshes automatically.";
+        note.textContent = tr("starting");
         alert.appendChild(note);
     }
 }
 
 function showError(message) {
-    setAlert(message || "Unknown error", true);
+    setAlert(trServerError(message) || tr("unknown"), true);
     hideChallengeUpdate();
     toggleChallengeCreate();
 }
@@ -299,14 +356,14 @@ function view_container_info(challenge_id) {
         .then(function (data) {
             // A response for a challenge the player has already navigated away
             // from must never be painted.
-            if (displayedChallengeId !== challenge_id) return;
+            if (displayedChallengeId !== challenge_id || panelChallengeId() !== challenge_id) return;
 
             if (data.error) {
                 showError(data.error);
                 return;
             }
             if (data.status === "not_found") {
-                setAlert("No active instance. Click 'Fetch Instance' to start.");
+                setAlert(tr("none"));
                 hideChallengeUpdate();
                 toggleChallengeCreate();
                 return;
@@ -320,12 +377,12 @@ function view_container_info(challenge_id) {
                 }
                 return;
             }
-            showError(data.error || ("Unknown status: " + data.status));
+            showError(data.error || tr("unknown_status", { s: data.status }));
         })
         .catch(function (error) {
             console.error("[Container] Fetch error:", error);
             if (displayedChallengeId === challenge_id) {
-                showError("Error fetching container info.");
+                showError(tr("err_info"));
             }
         })
         .finally(function () {
@@ -360,7 +417,7 @@ function container_request(challenge_id) {
         })
         .catch(function (error) {
             console.error("[Container] Request error:", error);
-            showError("Error requesting container.");
+            showError(tr("err_request"));
         })
         .finally(enableButtons);
 }
@@ -387,7 +444,7 @@ function container_renew(challenge_id) {
         })
         .catch(function (error) {
             console.error("[Container] Renew error:", error);
-            showError("Error renewing container.");
+            showError(tr("err_renew"));
         })
         .finally(enableButtons);
 }
@@ -425,51 +482,36 @@ function container_stop(challenge_id) {
                 showError(data.error);
                 return;
             }
-            setAlert("Instance terminated.");
+            setAlert(tr("terminated"));
             hideChallengeUpdate();
             toggleChallengeCreate();
         })
         .catch(function (error) {
             console.error("[Container] Stop error:", error);
-            showError("Error stopping container.");
+            showError(tr("err_stop"));
         })
         .finally(enableButtons);
 }
 
-// CTFd's core-beta theme injects this script dynamically (see fetchScript in
-// its bundle) *after* DOMContentLoaded, so a DOMContentLoaded listener here
-// would never fire. Poll briefly for the panel the view template renders
-// instead; the template's own inline call also reaches this same function, and
-// a second call is harmless.
-(function initContainerPanel() {
+function panelChallengeId() {
+    var panel = document.querySelector(".deployment-actions");
+    if (!panel) return null;
+    var id = parseInt(panel.getAttribute("data-challenge-id"), 10);
+    return isNaN(id) ? null : id;
+}
+
+// CTFd runs this script again on every challenge it opens, *before* the theme
+// paints the new view, and some themes (Alpine x-html) paint it a tick after
+// postRender. Until then the page still holds the previous challenge's panel,
+// so wait for the panel of this challenge instead of using whatever is there.
+function initContainerPanel(challengeId) {
     var attempts = 0;
-    var maxAttempts = 25; // ~5s
-
-    function findChallengeId() {
-        var panel = document.querySelector(".deployment-actions");
-        if (panel) {
-            var id = parseInt(panel.getAttribute("data-challenge-id"), 10);
-            if (!isNaN(id)) return id;
-        }
-        var input = document.getElementById("challenge-id");
-        if (input && input.value) {
-            var fromInput = parseInt(input.value, 10);
-            if (!isNaN(fromInput)) return fromInput;
-        }
-        return null;
-    }
-
-    function tryInit() {
-        attempts += 1;
-        var challengeId = findChallengeId();
-        if (challengeId !== null) {
+    (function tryInit() {
+        if (panelChallengeId() === challengeId) {
             view_container_info(challengeId);
             return;
         }
-        if (attempts < maxAttempts) {
-            setTimeout(tryInit, 200);
-        }
-    }
-
-    tryInit();
-})();
+        attempts += 1;
+        if (attempts < 25) setTimeout(tryInit, 200); // ~5s
+    })();
+}

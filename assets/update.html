@@ -13,6 +13,14 @@
 </div>
 {% endblock %}
 
+{# CTFd 3.8's own "Scoring Function" fields. Its admin JS hides every
+   .chal-initial/.chal-decay/.chal-minimum (ours included) while that select
+   says "Static", so the dynamic fields below vanished. Scoring is ours. #}
+{% block function %}{% endblock %}
+{% block initial %}{% endblock %}
+{% block decay %}{% endblock %}
+{% block minimum %}{% endblock %}
+
 {% block value %}
 <div class="form-group">
 	<label for="scoring_type">Scoring Type<br>

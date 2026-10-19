@@ -316,6 +316,11 @@ class ContainerChallengeType(BaseChallenge):
         cls._sync_connection_info(challenge)
         cls._ensure_placeholder_flag(challenge)
         db.session.commit()
+
+        # _apply_payload resets a dynamic value to initial; recompute it from
+        # the current solves, otherwise an edit mid-event inflates the scores
+        if challenge.container_decay and challenge.container_decay > 0:
+            cls.calculate_value(challenge)
         return challenge
 
     @classmethod

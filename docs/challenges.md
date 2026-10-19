@@ -133,7 +133,7 @@ Memory, CPU, and the process limit are global settings that apply to every conta
 
 Each container also gets:
 
-- All Linux capabilities dropped, with `CHOWN`, `SETUID`, `SETGID`, `DAC_OVERRIDE`, `FOWNER`, and `SYS_CHROOT` added back because many images need them at startup (an entrypoint writing the flag as root, `sshd` privilege separation).
+- All Linux capabilities dropped, with `CHOWN`, `SETUID`, `SETGID`, `DAC_OVERRIDE`, `FOWNER`, `SYS_CHROOT`, and `AUDIT_WRITE` added back because many images need them at startup (an entrypoint writing the flag as root, `sshd` privilege separation and interactive logins).
 - No `no-new-privileges`, so setuid binaries work (pwn challenges that read the flag through one).
 - A PID limit that blocks fork bombs.
 

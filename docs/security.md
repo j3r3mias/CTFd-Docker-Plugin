@@ -30,7 +30,7 @@ Each container gets the following.
 | Control | Setting | Blocks |
 | --- | --- | --- |
 | Capabilities dropped | `cap_drop: ALL` | Most privileged operations |
-| Selected capabilities added back | `CHOWN`, `SETUID`, `SETGID`, `DAC_OVERRIDE`, `FOWNER`, `SYS_CHROOT` | Needed by many images at startup (writing the flag, `sshd`) |
+| Selected capabilities added back | `CHOWN`, `SETUID`, `SETGID`, `DAC_OVERRIDE`, `FOWNER`, `SYS_CHROOT`, `AUDIT_WRITE` | Needed by many images at startup (writing the flag, `sshd`) |
 | Process limit | `pids_limit` | Fork bombs |
 | Memory limit | `mem_limit` | Memory exhaustion |
 | CPU limit | `cpu_quota` | CPU exhaustion |

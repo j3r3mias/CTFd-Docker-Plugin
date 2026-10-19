@@ -86,12 +86,14 @@ class ContainerService:
         if not challenge:
             raise Exception("Challenge not found")
 
-        # Already solved? No new instance.
+        # Already solved? No new instance, unless the admin allows it. Scoring
+        # is safe either way: CTFd never records a second solve, and the new
+        # instance gets its own flag, so sharing it is still flagged as reuse.
         already_solved = Solves.query.filter_by(
             challenge_id=challenge_id,
             account_id=account_id
         ).first()
-        if already_solved:
+        if already_solved and ContainerConfig.get('allow_after_solve', 'false') != 'true':
             raise Exception("Challenge already solved - cannot create new instance")
 
         # Already running (or being provisioned)?

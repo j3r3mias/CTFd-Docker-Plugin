@@ -476,6 +476,10 @@
                 <input type="text" x-model="config.max_cpu" placeholder="0.5">
               </div>
             </div>
+            <div class="field">
+              <label><input type="checkbox" x-model="bool.allow_after_solve"> Allow new instances after the challenge is solved</label>
+              <div class="hint">The instance always stops on the correct flag. On: the team can start a new one afterwards.</div>
+            </div>
           </div>
         </div>
 
@@ -937,6 +941,7 @@ function console() {
         subdomain_enabled: this.config.subdomain_enabled === 'true',
         subdomain_tls: this.config.subdomain_tls === 'true',
         anticheat_log_all_attempts: this.config.anticheat_log_all_attempts !== 'false',
+        allow_after_solve: this.config.allow_after_solve === 'true',
       };
     },
 

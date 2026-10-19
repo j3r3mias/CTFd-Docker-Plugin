@@ -26,7 +26,7 @@ SSH Challenge Example,Pwn,SSH and find the flag,ubuntu:20.04,22,22,/usr/sbin/ssh
 | `internal_ports` | no | Comma separated list, for example `80,22`. Wins over `internal_port`. |
 | `command` | no | Docker command. `{FLAG}` is replaced with the flag. |
 | `connection_type` | no | `http`, `tcp`, `nc`, `ssh`, or anything else. Defaults to `http`. |
-| `connection_info` | no | Extra text shown under the connection details |
+| `connection_info` | no | Extra text shown under the connection details. For `ssh`, a bare name is the SSH user instead (the player sees `ssh -p <port> <user>@<host>`). |
 | `flag_pattern` | no | Defaults to `CTF{flag}`. See [challenges.md](challenges.md). |
 | `scoring_type` | no | `standard` or `dynamic`. Defaults to `standard`. |
 | `value` | for standard | Points |

@@ -630,6 +630,8 @@ def _initialize_default_config():
         'max_memory': '512m',
         'max_cpu': '0.5',
         'container_max_concurrent_count': '3',
+        # Let a team start new instances of a challenge it already solved
+        'allow_after_solve': 'false',
         'subdomain_enabled': 'false',
         'subdomain_base_domain': '',
         'subdomain_network': 'ctfd-challenges',

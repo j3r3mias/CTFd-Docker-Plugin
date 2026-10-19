@@ -6,7 +6,7 @@ A CTFd plugin that gives every team (or every user, depending on the CTF mode) i
 
 - Spawns one container per account for a challenge, on demand.
 - Generates a unique flag per container (or uses a shared static flag).
-- Stops the container automatically when the flag is solved or the timer runs out.
+- Stops the container automatically when the flag is solved or the timer runs out. With `allow_after_solve`, the account can start a new one after solving.
 - Detects when a player submits another account's flag.
 - Gives admins a console for instances, settings, cheat logs, the audit trail, and bulk CSV import.
 - Isolates challenge containers from each other and from the CTFd host.

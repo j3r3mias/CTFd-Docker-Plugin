@@ -29,6 +29,7 @@ The dependency here is `docker-py`, which speaks SSH itself. A plain SSH daemon 
 | Max renewals | 3 | How many times a player may extend their instance. |
 | Renewal extension | 5 | Minutes added per extension. |
 | Max concurrent containers per account | 3 | Applies per team in team mode, per user in user mode. |
+| Allow new instances after the challenge is solved | off | The instance always stops (status `solved`) on the correct flag. On: the team can start a new one afterwards; there is no second solve, and each new instance has its own flag, so sharing it is still detected. |
 | Memory limit | `512m` | Docker memory limit for every challenge container. |
 | CPU limit | `0.5` | In cores. `1.5` means one and a half cores. |
 
@@ -122,6 +123,7 @@ If some values were rejected, the response lists them and the rest are saved. Th
 | `max_memory` | string | `512m` |
 | `max_cpu` | float | `0.5` |
 | `container_max_concurrent_count` | int | `3` |
+| `allow_after_solve` | bool | `false` |
 | `isolated_network` | string | `ctfd-isolated` |
 | `subdomain_enabled` | bool | `false` |
 | `subdomain_base_domain` | hostname | empty |

@@ -56,7 +56,8 @@ var CONTAINER_TEXTS_EN = {
     not_running: "No running container found",
     not_available: "Challenge is not available",
     stop_failed: "Failed to stop container",
-    paused: "The CTF is paused; instances cannot be started or extended."
+    paused: "The CTF is paused; instances cannot be started or extended.",
+    solved: "Challenge already solved - cannot create new instance"
 };
 
 function tr(key, vars) {
@@ -82,7 +83,8 @@ function trServerError(message) {
         "No running container found": "not_running",
         "Challenge is not available": "not_available",
         "Failed to stop container": "stop_failed",
-        "The CTF is paused": "paused"
+        "The CTF is paused": "paused",
+        "Challenge already solved - cannot create new instance": "solved"
     };
     return known[message] ? tr(known[message]) : message;
 }
@@ -239,10 +241,17 @@ function renderConnectionInfo(connection, parent) {
 
     if (type === "tcp" || type === "nc" || type === "ssh") {
         var targets = hasPorts ? Object.values(ports) : [connection.port];
+        var sshUser = "user";
+        // For ssh, a connection_info that is a bare name is the SSH user
+        // (e.g. "idp"): it goes into the command instead of below it
+        if (type === "ssh" && /^[a-z_][a-z0-9_.-]*$/i.test((info || "").trim())) {
+            sshUser = info.trim();
+            info = null;
+        }
         targets.forEach(function (external) {
             var code = document.createElement("code");
             if (type === "ssh") {
-                code.textContent = "ssh -p " + external + " user@" + connection.host;
+                code.textContent = "ssh -p " + external + " " + sshUser + "@" + connection.host;
             } else {
                 code.textContent = "nc " + connection.host + " " + external;
             }

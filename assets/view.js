@@ -55,7 +55,8 @@ var CONTAINER_TEXTS_EN = {
     max: "You have reached the maximum number of concurrent containers ({n})",
     not_running: "No running container found",
     not_available: "Challenge is not available",
-    stop_failed: "Failed to stop container"
+    stop_failed: "Failed to stop container",
+    paused: "The CTF is paused; instances cannot be started or extended."
 };
 
 function tr(key, vars) {
@@ -80,7 +81,8 @@ function trServerError(message) {
     var known = {
         "No running container found": "not_running",
         "Challenge is not available": "not_available",
-        "Failed to stop container": "stop_failed"
+        "Failed to stop container": "stop_failed",
+        "The CTF is paused": "paused"
     };
     return known[message] ? tr(known[message]) : message;
 }

@@ -1,19 +1,21 @@
 """
 User-facing Routes - Container operations for players
 """
+import functools
 import logging
 
 from flask import Blueprint, jsonify, request
 
 from CTFd.models import db
 from CTFd.utils import get_config
+from CTFd.utils.dates import ctf_paused
 from CTFd.utils.decorators import (
     authed_only,
     during_ctf_time_only,
     ratelimit,
     require_verified_emails,
 )
-from CTFd.utils.user import get_current_user
+from CTFd.utils.user import get_current_user, is_admin
 
 from ..models.challenge import ContainerChallenge
 from ..models.config import ContainerConfig
@@ -35,6 +37,21 @@ def set_services(c_service, f_service, a_service):
     container_service = c_service
     flag_service = f_service
     anticheat_service = a_service
+
+
+def not_while_paused(f):
+    """
+    Refuse starting or extending instances while the CTF is paused.
+
+    during_ctf_time_only only checks start/end, so without this players could
+    keep spinning up containers during a pause. Admins are not affected.
+    """
+    @functools.wraps(f)
+    def wrapper(*args, **kwargs):
+        if ctf_paused() and not is_admin():
+            return jsonify({'error': 'The CTF is paused'}), 403
+        return f(*args, **kwargs)
+    return wrapper
 
 
 def get_account_id():
@@ -87,6 +104,7 @@ def _renew_minutes():
 @user_bp.route('/request', methods=['POST'])
 @authed_only
 @during_ctf_time_only
+@not_while_paused
 @require_verified_emails
 @ratelimit(method='POST', limit=10, interval=60)
 def request_container():
@@ -185,6 +203,7 @@ def get_container_info(challenge_id):
 @user_bp.route('/renew', methods=['POST'])
 @authed_only
 @during_ctf_time_only
+@not_while_paused
 @require_verified_emails
 @ratelimit(method='POST', limit=10, interval=60)
 def renew_container():

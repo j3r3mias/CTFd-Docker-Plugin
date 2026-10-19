@@ -30,12 +30,13 @@ Each container gets the following.
 | Control | Setting | Blocks |
 | --- | --- | --- |
 | Capabilities dropped | `cap_drop: ALL` | Most privileged operations |
-| Selected capabilities added back | `CHOWN`, `SETUID`, `SETGID` | Needed by many images at startup |
-| Privilege escalation | `no-new-privileges` | A setuid binary raising privileges |
+| Selected capabilities added back | `CHOWN`, `SETUID`, `SETGID`, `DAC_OVERRIDE`, `FOWNER`, `SYS_CHROOT` | Needed by many images at startup (writing the flag, `sshd`) |
 | Process limit | `pids_limit` | Fork bombs |
 | Memory limit | `mem_limit` | Memory exhaustion |
 | CPU limit | `cpu_quota` | CPU exhaustion |
 | Network isolation | `enable_icc=false` | Direct container to container traffic |
+
+`no-new-privileges` is not set: pwn challenges often use a setuid binary to read the flag, and with that option the kernel ignores the setuid bit.
 
 Containers still run as root inside their own namespace. That is deliberate: many CTF challenges ask the player to obtain root inside the container, which is the objective of the challenge. Removing root would break those challenges.
 

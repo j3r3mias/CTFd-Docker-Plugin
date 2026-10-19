@@ -202,8 +202,12 @@ class DockerService:
                 network=network_arg,
                 # Security options
                 cap_drop=['ALL'],  # Drop all capabilities
-                cap_add=['CHOWN', 'SETUID', 'SETGID'],  # Add back minimal caps
-                security_opt=['no-new-privileges'],
+                # Add back minimal caps. DAC_OVERRIDE/FOWNER: entrypoints running as
+                # root write the flag over a read-only file or into a user's home;
+                # SYS_CHROOT: sshd privilege separation (jail challenges over SSH)
+                cap_add=['CHOWN', 'SETUID', 'SETGID', 'DAC_OVERRIDE', 'FOWNER', 'SYS_CHROOT'],
+                # No no-new-privileges: pwn challenges rely on setuid binaries to
+                # read the flag, and it makes the kernel ignore the setuid bit
                 **extra_host_config,
             )
 

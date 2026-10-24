@@ -15,6 +15,7 @@ from CTFd.models import Flags, Solves, db
 from CTFd.exceptions.challenges import ChallengeCreateException, ChallengeUpdateException
 from CTFd.plugins import register_plugin_assets_directory
 from CTFd.plugins.challenges import CHALLENGE_CLASSES, BaseChallenge
+from CTFd.plugins.flags import FLAG_CLASSES
 from CTFd.utils import get_config
 from CTFd.utils.modes import get_model
 from CTFd.utils.user import get_current_user
@@ -35,6 +36,7 @@ from .services import (
 )
 from .utils import parse_flag_pattern
 from .routes import user_bp, admin_bp
+from .team_flag import TeamFlag
 from .routes.user import set_services as set_user_services
 from .routes.admin import set_services as set_admin_services
 
@@ -570,6 +572,10 @@ def load(app: Flask):
 
     # Register challenge type
     CHALLENGE_CLASSES["container"] = ContainerChallengeType
+
+    # Flag type with one predetermined flag per team, for non-container challenges
+    TeamFlag.anticheat_service = anticheat_service
+    FLAG_CLASSES["team"] = TeamFlag
 
     # Register plugin assets + templates
     register_plugin_assets_directory(app, base_path="/plugins/containers/assets/")

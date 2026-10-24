@@ -1,0 +1,16 @@
+<label>
+	Team flag<br>
+	<small>The flag of one team. Another team submitting it gets "Incorrect" and goes to the cheat log.</small>
+</label>
+<div class="form-group">
+	<input type="text" class="form-control" name="content" value="{{ content }}" placeholder="Flag">
+</div>
+<div class="form-group">
+	<input type="text" class="form-control" name="data" value="{{ data }}" placeholder="Team name (user name in user mode)">
+</div>
+<input type="hidden" name="type" value="team">
+<input type="hidden" name="id" value="{{ id }}">
+<hr>
+<div class="form-group">
+	<button class="btn btn-success float-right">Update</button>
+</div>

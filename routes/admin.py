@@ -13,7 +13,7 @@ from flask import Blueprint, jsonify, make_response, render_template, request
 from sqlalchemy import or_
 from sqlalchemy.orm import joinedload
 
-from CTFd.models import Flags, Teams, Users, db
+from CTFd.models import Challenges, Flags, Teams, Users, db
 from CTFd.utils import get_config
 from CTFd.utils.decorators import admins_only
 
@@ -540,9 +540,10 @@ def list_cheats_page():
         users = {u.id: u for u in Users.query.filter(Users.id.in_(submitter_ids)).all()} if submitter_ids else {}
         teams = {t.id: t for t in Teams.query.filter(Teams.id.in_(owner_ids)).all()} if owner_ids else {}
 
+        # Any challenge type: team flags log reuse on non-container challenges
         challenges = {
-            c.id: c.name for c in ContainerChallenge.query.filter(
-                ContainerChallenge.id.in_({r.challenge_id for r in rows})
+            c.id: c.name for c in Challenges.query.filter(
+                Challenges.id.in_({r.challenge_id for r in rows})
             ).all()
         } if rows else {}
 

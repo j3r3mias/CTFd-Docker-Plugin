@@ -18,6 +18,8 @@ When a flag is submitted on a challenge, the plugin looks up its hash scoped to 
 | Expired | The flag exists but its container already expired | `This flag has expired` |
 | Reuse | The flag belongs to a different account | `Incorrect` |
 
+The `team` flag type brings the same detection to challenges without containers, using a predetermined flag per team. See [team-flags.md](team-flags.md).
+
 A reuse is never announced to the player. Telling them would reveal that the system detected it and would help them work out which flag was whose.
 
 ## What gets recorded

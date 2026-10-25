@@ -1,0 +1,20 @@
+{% extends "challenge.html" %}
+
+{% set koth_texts = {
+  'pt': {'title': 'King of the Hill', 'auto': 'Pontuação automática: não há flag para enviar.',
+         'mine': 'Pontos do seu time neste desafio agora:'},
+} %}
+{% set kt = koth_texts.get((get_locale() | string)[:2], {}) %}
+
+{% block submit_title %}{{ kt.get('title', 'King of the Hill') }}{% endblock %}
+
+{% block input %}
+<input id="challenge-id" class="challenge-id" type="hidden" value="{{ challenge.id }}">
+<p class="mb-1">{{ kt.get('auto', 'Scored automatically: there is no flag to submit.') }}</p>
+{% set points = koth_points(challenge.id) %}
+{% if points is not none %}
+<p class="mb-0">{{ kt.get('mine', "Your team's points on this challenge now:") }} <strong>{{ points }}</strong></p>
+{% endif %}
+{% endblock %}
+
+{% block submit %}{% endblock %}

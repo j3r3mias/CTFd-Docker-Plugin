@@ -16,8 +16,10 @@ from CTFd.utils.decorators import (
     require_verified_emails,
 )
 from CTFd.utils.user import get_current_user, is_admin
+from CTFd.utils.decorators.visibility import check_account_visibility, check_score_visibility
 
 from ..models.challenge import ContainerChallenge
+from ..koth import scoreboard_points
 from ..models.config import ContainerConfig
 from ..models.instance import ContainerInstance
 
@@ -277,3 +279,11 @@ def stop_container():
     except Exception as e:  # noqa: BLE001
         logger.error(f"Container stop failed: {e}", exc_info=True)
         return jsonify({'error': str(e)}), 500
+
+
+@user_bp.route('/koth/scores', methods=['GET'])
+@check_account_visibility
+@check_score_visibility
+def koth_scores():
+    """KotH points per challenge and account, for the scoreboard matrix."""
+    return jsonify({'success': True, 'data': scoreboard_points()})

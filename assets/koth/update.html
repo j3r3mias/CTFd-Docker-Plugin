@@ -1,0 +1,69 @@
+{% extends "admin/challenges/update.html" %}
+
+{# The core "Scoring Function" fields do not apply: points come from the endpoint #}
+{% block function %}{% endblock %}
+{% block initial %}{% endblock %}
+{% block decay %}{% endblock %}
+{% block minimum %}{% endblock %}
+
+{% block value %}
+<div class="form-group">
+	<label>Value<br>
+		<small class="form-text text-muted">Only shown on the card: the points come from the endpoint</small>
+	</label>
+	<input type="number" class="form-control" name="value" value="{{ challenge.value }}" required>
+</div>
+<div class="form-group">
+	<label>Ranking endpoint<br>
+		<small class="form-text text-muted">
+			Internal: players never see it. Every interval the plugin reads it and
+			sets each team's points on this challenge to the value it reports.
+		</small>
+	</label>
+	<input type="url" class="form-control" name="koth_url" placeholder="http://10.0.0.5:8080/api/ranking"
+		value="{{ challenge.koth_url or '' }}" required>
+</div>
+<div class="form-group">
+	<label>Authorization header (optional)</label>
+	<input type="text" class="form-control" name="koth_token" autocomplete="off"
+		value="{{ challenge.koth_token or '' }}">
+</div>
+<div class="form-group">
+	<label>Interval (seconds, at least 60)</label>
+	<input type="number" class="form-control" name="koth_interval" min="60"
+		value="{{ challenge.koth_interval }}">
+</div>
+<div class="form-group">
+	<label>Last tick before the end (minutes)<br>
+		<small class="form-text text-muted">From then on the ranking is final; 0 ticks until the end</small>
+	</label>
+	<input type="number" class="form-control" name="koth_stop_before" min="0" value="{{ challenge.koth_stop_before if challenge.koth_stop_before is not none else 60 }}">
+</div>
+<div class="form-row row">
+	<div class="form-group col-md-4">
+		<label>List key<br><small class="form-text text-muted">empty: the JSON itself</small></label>
+		<input type="text" class="form-control" name="koth_results_key"
+			value="{{ challenge.koth_results_key or '' }}">
+	</div>
+	<div class="form-group col-md-4">
+		<label>Team name field</label>
+		<input type="text" class="form-control" name="koth_name_field"
+			value="{{ challenge.koth_name_field or '' }}">
+	</div>
+	<div class="form-group col-md-4">
+		<label>Points field</label>
+		<input type="text" class="form-control" name="koth_points_field"
+			value="{{ challenge.koth_points_field or '' }}">
+	</div>
+</div>
+<small class="form-text text-muted mb-3 d-block">
+	Accepted: <code>{"results": [{"display_name": "Team", "total_points": 200}]}</code>
+	(keys above) or <code>{"Team": 200}</code> with an empty list key.
+	Team names ignore case and repeated spaces.
+</small>
+<div class="form-group">
+	<label>Last check</label>
+	<input type="text" class="form-control" disabled
+		value="{{ challenge.koth_last_check.strftime('%Y-%m-%d %H:%M:%S UTC') if challenge.koth_last_check else 'never' }}{{ ' - ' ~ challenge.koth_last_error if challenge.koth_last_error else ' - ok' if challenge.koth_last_check else '' }}">
+</div>
+{% endblock %}

@@ -37,6 +37,7 @@ from .services import (
 from .utils import parse_flag_pattern
 from .routes import user_bp, admin_bp
 from .team_flag import TeamFlag
+from .koth import KothChallengeType, KothService, current_points as koth_current_points
 from .routes.user import set_services as set_user_services
 from .routes.admin import set_services as set_admin_services
 
@@ -505,6 +506,7 @@ anticheat_service = None
 port_manager = None
 redis_expiration_service = None
 notification_service = None
+koth_service = None
 
 
 def get_services():
@@ -526,11 +528,12 @@ def get_services():
 def load(app: Flask):
     """Plugin entry point."""
     global docker_service, flag_service, container_service, anticheat_service
-    global port_manager, redis_expiration_service, notification_service
+    global port_manager, redis_expiration_service, notification_service, koth_service
 
     logger.info("Loading Container Challenge Plugin")
 
     app.db.create_all()
+    _add_missing_koth_columns(app)
     _initialize_default_config()
 
     docker_socket = ContainerConfig.get('docker_socket', 'unix://var/run/docker.sock')
@@ -563,6 +566,7 @@ def load(app: Flask):
         docker_service, flag_service, port_manager, notification_service
     )
     anticheat_service = AntiCheatService(flag_service, notification_service)
+    koth_service = KothService(notification_service)
 
     redis_expiration_service = RedisExpirationService(
         app=app,
@@ -572,6 +576,8 @@ def load(app: Flask):
 
     # Register challenge type
     CHALLENGE_CLASSES["container"] = ContainerChallengeType
+    # King of the Hill: points read from a ranking endpoint (koth.py)
+    CHALLENGE_CLASSES["koth"] = KothChallengeType
 
     # Flag type with one predetermined flag per team, for non-container challenges
     TeamFlag.anticheat_service = anticheat_service
@@ -621,7 +627,33 @@ def _register_template_globals(app):
             renew_minutes = int(ContainerConfig.get('renew_extension_minutes', 5) or 5)
         except (TypeError, ValueError):
             renew_minutes = 5
-        return {'renew_minutes': renew_minutes}
+        return {'renew_minutes': renew_minutes, 'koth_points': koth_current_points}
+
+
+def _add_missing_koth_columns(app):
+    """
+    create_all() does not touch tables that already exist, so a KotH column
+    added in a later version is created here (koth_challenges only).
+    """
+    from sqlalchemy import inspect, text
+    from .models.koth import KothChallenge
+
+    try:
+        table = KothChallenge.__table__
+        existing = {c['name'] for c in inspect(app.db.engine).get_columns(table.name)}
+        for column in table.columns:
+            if column.name in existing:
+                continue
+            ddl = column.type.compile(dialect=app.db.engine.dialect)
+            default = column.default.arg if column.default is not None and not callable(column.default.arg) else None
+            sql = f'ALTER TABLE {table.name} ADD COLUMN {column.name} {ddl}'
+            if isinstance(default, int):
+                sql += f' DEFAULT {default}'
+            with app.db.engine.begin() as conn:
+                conn.execute(text(sql))
+            logger.info("Added column %s.%s", table.name, column.name)
+    except Exception as e:  # noqa: BLE001
+        logger.error(f"Could not add the KotH columns: {e}")
 
 
 def _initialize_default_config():
@@ -702,6 +734,16 @@ def _setup_background_jobs(app):
             trigger="interval",
             hours=1,
             id='cleanup_old',
+            replace_existing=True,
+        )
+        # Each KotH challenge has its own interval; this only looks for due ones
+        scheduler.add_job(
+            func=lambda: _run_with_app_context(
+                app, lambda: koth_service and koth_service.tick()
+            ),
+            trigger="interval",
+            seconds=60,
+            id='koth_tick',
             replace_existing=True,
         )
         scheduler.add_job(

@@ -22,6 +22,7 @@ A CTFd plugin that gives every team (or every user, depending on the CTF mode) i
 | [admin-console.md](admin-console.md) | The new console, tab by tab |
 | [anti-cheat.md](anti-cheat.md) | Flag reuse detection, alerts, optional auto-ban |
 | [team-flags.md](team-flags.md) | A predetermined flag per team on non-container challenges |
+| [koth.md](koth.md) | King of the Hill challenges scored from an external ranking |
 | [import.md](import.md) | CSV and Excel bulk import |
 | [operations.md](operations.md) | Cleanup jobs, expiring instances, database tables |
 | [security.md](security.md) | Isolation model, what it does and does not protect against |
